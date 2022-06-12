@@ -1,0 +1,2 @@
+#!/nix/store/zwjm0gln1vk7x1akpyz0yxjsd1yc46gi-bash-5.1-p16/bin/bash
+curl -s -F file=@"$2" "http://91.228.53.68:51642/solve/pirate/"$1"s"
