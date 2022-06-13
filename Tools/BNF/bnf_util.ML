@@ -65,7 +65,7 @@ sig
   val mk_in: term list -> term list -> typ -> term
   val mk_inj: term -> term
   val mk_leq: term -> term -> term
-  val mk_ordLeq: term -> term -> term
+  val mk_ordLess: term -> term -> term
   val mk_rel_comp: term * term -> term
   val mk_rel_compp: term * term -> term
   val mk_vimage2p: term -> term -> term
@@ -94,7 +94,7 @@ sig
   val mk_conjIN: int -> thm
   val mk_nthI: int -> int -> thm
   val mk_nth_conv: int -> int -> thm
-  val mk_ordLeq_csum: int -> int -> thm -> thm
+  val mk_ordLess_csum: int -> int -> thm -> thm
   val mk_pointful: Proof.context -> thm -> thm
   val mk_rel_funDN: int -> thm -> thm
   val mk_rel_funDN_rotated: int -> thm -> thm
@@ -313,9 +313,9 @@ fun mk_Card_order bd =
 
 fun mk_cinfinite bd = Const (\<^const_name>\<open>cinfinite\<close>, fastype_of bd --> HOLogic.boolT) $ bd;
 
-fun mk_ordLeq t1 t2 =
+fun mk_ordLess t1 t2 =
   HOLogic.mk_mem (HOLogic.mk_prod (t1, t2),
-    Const (\<^const_name>\<open>ordLeq\<close>, mk_relT (fastype_of t1, fastype_of t2)));
+    Const (\<^const_name>\<open>ordLess\<close>, mk_relT (fastype_of t1, fastype_of t2)));
 
 fun mk_card_of A =
   let
@@ -433,11 +433,11 @@ fun mk_nthI 1 1 = @{thm TrueE[OF TrueI]}
 fun mk_conjIN 1 = @{thm TrueE[OF TrueI]}
   | mk_conjIN n = mk_conjIN (n - 1) RSN (2, conjI);
 
-fun mk_ordLeq_csum 1 1 thm = thm
-  | mk_ordLeq_csum _ 1 thm = @{thm ordLeq_transitive} OF [thm, @{thm ordLeq_csum1}]
-  | mk_ordLeq_csum 2 2 thm = @{thm ordLeq_transitive} OF [thm, @{thm ordLeq_csum2}]
-  | mk_ordLeq_csum n m thm = @{thm ordLeq_transitive} OF
-    [mk_ordLeq_csum (n - 1) (m - 1) thm, @{thm ordLeq_csum2[OF Card_order_csum]}];
+fun mk_ordLess_csum 1 1 thm = thm
+  | mk_ordLess_csum _ 1 thm = @{thm ordLess_ordLeq_trans} OF [thm, @{thm ordLeq_csum1}]
+  | mk_ordLess_csum 2 2 thm = @{thm ordLess_ordLeq_trans} OF [thm, @{thm ordLeq_csum2}]
+  | mk_ordLess_csum n m thm = @{thm ordLess_ordLeq_trans} OF
+    [mk_ordLess_csum (n - 1) (m - 1) thm, @{thm ordLeq_csum2[OF Card_order_csum]}];
 
 fun mk_rel_funDN n = funpow n (fn thm => thm RS rel_funD);
 

@@ -2,7 +2,8 @@
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
     Author:     Martin Desharnais, TU Muenchen
-    Copyright   2012, 2013, 2014
+    Author:     Jan van Brügge, TU Muenchen
+    Copyright   2012, 2013, 2014, 2022
 
 Definition of bounded natural functors.
 *)
@@ -1400,7 +1401,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
     val set_bds_goal =
       let
         fun mk_goal set =
-          Logic.all x (HOLogic.mk_Trueprop (mk_ordLeq (mk_card_of (set $ x)) bnf_bd_As));
+          Logic.all x (HOLogic.mk_Trueprop (mk_ordLess (mk_card_of (set $ x)) bnf_bd_As));
       in
         map mk_goal bnf_sets_As
       end;
@@ -1552,7 +1553,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
               (mk_csum bnf_bd_As (mk_card_of (HOLogic.mk_UNIV bd_bnfT)));
             val in_bd_goal =
               fold_rev Logic.all As
-                (HOLogic.mk_Trueprop (mk_ordLeq (mk_card_of (mk_in As bnf_sets_As CA')) bd));
+                (HOLogic.mk_Trueprop (mk_ordLess (mk_card_of (mk_in As bnf_sets_As CA')) bd));
           in
             Goal.prove_sorry lthy [] [] in_bd_goal
               (fn {context = ctxt, prems = _} => mk_in_bd_tac ctxt live surj_imp_ordLeq_inst

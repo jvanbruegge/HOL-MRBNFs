@@ -566,7 +566,15 @@ by (rule cinfinite_mono[OF ordLeq_cexp2]) simp_all
 
 lemma Cinfinite_cexp:
   "\<lbrakk>ctwo \<le>o q; Cinfinite r\<rbrakk> \<Longrightarrow> Cinfinite (q ^c r)"
-by (simp add: cinfinite_cexp Card_order_cexp)
+  by (simp add: cinfinite_cexp Card_order_cexp)
+
+lemma card_order_cexp:
+  assumes "card_order r1" "card_order r2"
+  shows "card_order (r1 ^c r2)"
+proof -
+  have "Field r1 = UNIV" "Field r2 = UNIV" using assms card_order_on_Card_order by auto
+  thus ?thesis unfolding cexp_def Func_def using card_of_card_order_on by simp
+qed
 
 lemma ctwo_ordLess_natLeq: "ctwo <o natLeq"
 unfolding ctwo_def using finite_UNIV natLeq_cinfinite natLeq_Card_order

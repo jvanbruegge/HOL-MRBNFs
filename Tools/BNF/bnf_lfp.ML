@@ -1,7 +1,8 @@
 (*  Title:      HOL/Tools/BNF/bnf_lfp.ML
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
-    Copyright   2012
+    Author:     Jan van Brügge, TU Muenchen
+    Copyright   2012, 2022
 
 Datatype construction.
 *)
@@ -491,14 +492,14 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
           val sbd_Card_order = sbd_Cinfinite RS conjunct2;
 
           fun mk_set_sbd i bd_Card_order bds =
-            map (fn thm => @{thm ordLeq_ordIso_trans} OF
-              [bd_Card_order RS mk_ordLeq_csum n i thm, sbd_ordIso]) bds;
+            map (fn thm => @{thm ordLess_ordIso_trans} OF
+              [bd_Card_order RS mk_ordLess_csum n i thm, sbd_ordIso]) bds;
           val set_sbdss = @{map 3} mk_set_sbd ks bd_Card_orders set_bdss;
 
           fun mk_in_bd_sum i Co Cnz bd =
-            Cnz RS ((@{thm ordLeq_ordIso_trans} OF
-              [Co RS mk_ordLeq_csum n i (Co RS @{thm ordLeq_refl}), sbd_ordIso]) RS
-              (bd RS @{thm ordLeq_transitive[OF _ cexp_mono2_Cnotzero[OF _ Card_order_csum]]}));
+            Cnz RS ((@{thm ordLess_ordIso_trans} OF
+              [Co RS mk_ordLess_csum n i (Co RS @{thm ordLeq_refl}), sbd_ordIso]) RS
+              (bd RS @{thm ordLess_ordLeq_trans[OF _ cexp_mono2_Cnotzero[OF _ Card_order_csum]]}));
           val in_sbds = @{map 4} mk_in_bd_sum ks bd_Card_orders bd_Cnotzeros in_bds;
        in
          (lthy, sbd, sbd_Cinfinite, sbd_Card_order, set_sbdss, in_sbds)
@@ -607,7 +608,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
             |> Thm.close_derivation \<^here>)
           (map mk_mono_goal min_algss) min_algs_thms;
 
-        fun mk_card_conjunct min_alg = mk_ordLeq (mk_card_of min_alg) Asuc_bd;
+        fun mk_card_conjunct min_alg = mk_ordLess (mk_card_of min_alg) Asuc_bd;
         val card_conjunction = Library.foldr1 HOLogic.mk_conj (map mk_card_conjunct min_algss);
         val card_cT = Thm.ctyp_of lthy suc_bdT;
         val card_ct = Thm.cterm_of lthy (Term.absfree idx' card_conjunction);
@@ -703,7 +704,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
         fun mk_card_of_thm min_alg def =
           let
-            val goal = HOLogic.mk_Trueprop (mk_ordLeq (mk_card_of min_alg) Asuc_bd);
+            val goal = HOLogic.mk_Trueprop (mk_ordLess (mk_card_of min_alg) Asuc_bd);
             val vars = Variable.add_free_names lthy goal [];
           in
             Goal.prove_sorry lthy vars [] goal
@@ -1423,8 +1424,8 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
                 [sbd0_def, @{thm card_order_dir_image} OF [Abs_sbd0T_bij, sum_card_order]];
 
               fun mk_set_sbd0 i bd0_Card_order bd0s =
-                map (fn thm => @{thm ordLeq_ordIso_trans} OF
-                  [bd0_Card_order RS mk_ordLeq_csum n i thm, sbd0_ordIso]) bd0s;
+                map (fn thm => @{thm ordLess_ordIso_trans} OF
+                  [bd0_Card_order RS mk_ordLess_csum n i thm, sbd0_ordIso]) bd0s;
               val set_sbd0ss = @{map 3} mk_set_sbd0 ks bd0_Card_orders set_bd0ss;
             in
               (lthy, sbd0, sbd0_card_order, sbd0_Cinfinite, set_sbd0ss)
@@ -1605,7 +1606,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
         val Iset_bd_thmss =
           let
-            fun mk_set_bd z bd set = mk_ordLeq (mk_card_of (set $ z)) bd;
+            fun mk_set_bd z bd set = mk_ordLess (mk_card_of (set $ z)) bd;
 
             fun mk_cphi z set = Thm.cterm_of lthy (Term.absfree (dest_Free z) (mk_set_bd z sbd0 set));
 
