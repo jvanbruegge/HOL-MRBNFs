@@ -53,6 +53,7 @@ sig
   val mk_card_order: term -> term
   val mk_cexp: term -> term -> term
   val mk_cinfinite: term -> term
+  val mk_regularCard: term -> term
   val mk_collect: term list -> typ -> term
   val mk_converse: term -> term
   val mk_conversep: term -> term
@@ -312,6 +313,8 @@ fun mk_Card_order bd =
   end;
 
 fun mk_cinfinite bd = Const (\<^const_name>\<open>cinfinite\<close>, fastype_of bd --> HOLogic.boolT) $ bd;
+
+fun mk_regularCard bd = Const (\<^const_name>\<open>regularCard\<close>, fastype_of bd --> HOLogic.boolT) $ bd;
 
 fun mk_ordLess t1 t2 =
   HOLogic.mk_mem (HOLogic.mk_prod (t1, t2),

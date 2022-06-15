@@ -1426,6 +1426,66 @@ proof-
   thus ?thesis by (simp only: card_of_cardSuc_finite)
 qed
 
+lemma Field_cardSuc_not_empty:
+assumes "Card_order r"
+shows "Field (cardSuc r) \<noteq> {}"
+proof
+  assume "Field(cardSuc r) = {}"
+  then have "|Field(cardSuc r)| \<le>o r" using assms Card_order_empty[of r] by auto
+  then have "cardSuc r \<le>o r" using assms card_of_Field_ordIso
+  cardSuc_Card_order ordIso_symmetric ordIso_ordLeq_trans by blast
+  then show False using cardSuc_greater not_ordLess_ordLeq assms by blast
+qed
+
+typedef 'a suc = "Field (cardSuc |UNIV :: 'a set| )"
+  using Field_cardSuc_not_empty card_of_Card_order by blast
+
+definition card_suc :: "'a rel \<Rightarrow> 'a suc rel" where
+  "card_suc \<equiv> \<lambda>_. map_prod Abs_suc Abs_suc ` cardSuc |UNIV :: 'a set|"
+
+lemma Field_card_suc: "Field (card_suc r) = UNIV"
+proof -
+  let ?r = "cardSuc |UNIV|"
+  let ?ar = "\<lambda>x. Abs_suc (Rep_suc x)"
+  have 1: "\<And>P. (\<forall>x\<in>Field ?r. P x) = (\<forall>x. P (Rep_suc x))" using Rep_suc_induct Rep_suc by blast
+  have 2: "\<And>P. (\<exists>x\<in>Field ?r. P x) = (\<exists>x. P (Rep_suc x))" using Rep_suc_cases Rep_suc by blast
+  have 3: "\<And>A a b. (a, b) \<in> A \<Longrightarrow> (Abs_suc a, Abs_suc b) \<in> map_prod Abs_suc Abs_suc ` A" unfolding map_prod_def by auto
+  have "\<forall>x\<in>Field ?r. (\<exists>b\<in>Field ?r. (x, b) \<in> ?r) \<or> (\<exists>a\<in>Field ?r. (a, x) \<in> ?r)"
+    unfolding Field_def Range.simps Domain.simps Un_iff by blast
+  then have "\<forall>x. (\<exists>b. (Rep_suc x, Rep_suc b) \<in> ?r) \<or> (\<exists>a. (Rep_suc a, Rep_suc x) \<in> ?r)" unfolding 1 2 .
+  then have "\<forall>x. (\<exists>b. (?ar x, ?ar b) \<in> map_prod Abs_suc Abs_suc ` ?r) \<or> (\<exists>a. (?ar a, ?ar x) \<in> map_prod Abs_suc Abs_suc ` ?r)" using 3 by fast
+  then have "\<forall>x. (\<exists>b. (x, b) \<in> card_suc r) \<or> (\<exists>a. (a, x) \<in> card_suc r)" unfolding card_suc_def Rep_suc_inverse .
+  then show ?thesis unfolding Field_def Domain.simps Range.simps set_eq_iff Un_iff eqTrueI[OF UNIV_I] ex_simps simp_thms .
+qed
+
+lemma card_suc_alt: "card_suc r = dir_image (cardSuc |UNIV :: 'a set| ) Abs_suc"
+  unfolding card_suc_def dir_image_def by auto
+
+lemma cardSuc_Well_order: "Card_order r \<Longrightarrow> Well_order(cardSuc r)"
+  using cardSuc_Card_order unfolding card_order_on_def by blast
+
+lemma cardSuc_ordIso_card_suc:
+  assumes "card_order r"
+  shows "cardSuc r =o card_suc (r :: 'a rel)"
+proof -
+  have "cardSuc (r :: 'a rel) =o cardSuc |UNIV :: 'a set|"
+    using cardSuc_invar_ordIso[THEN iffD2, OF _ card_of_Card_order card_of_unique[OF assms]] assms
+    by (simp add: card_order_on_Card_order)
+  also have "cardSuc |UNIV :: 'a set| =o card_suc (r :: 'a rel)"
+    unfolding card_suc_alt
+    by (rule dir_image_ordIso) (simp_all add: inj_on_def Abs_suc_inject cardSuc_Well_order card_of_Card_order)
+  finally show ?thesis .
+qed
+
+lemma Card_order_card_suc: "card_order r \<Longrightarrow> Card_order (card_suc r)"
+  using cardSuc_Card_order[THEN Card_order_ordIso2[OF _ cardSuc_ordIso_card_suc]] card_order_on_Card_order by blast
+
+lemma card_order_card_suc: "card_order r \<Longrightarrow> card_order (card_suc r)"
+  using Card_order_card_suc arg_cong2[OF Field_card_suc refl, of "card_order_on"] by blast
+
+lemma card_suc_greater: "card_order r \<Longrightarrow> r <o card_suc r"
+  using ordLess_ordIso_trans[OF cardSuc_greater cardSuc_ordIso_card_suc] card_order_on_Card_order by blast
+
 lemma card_of_Plus_ordLess_infinite:
 assumes INF: "\<not>finite C" and
         LESS1: "|A| <o |C|" and LESS2: "|B| <o |C|"
@@ -1754,6 +1814,31 @@ lemma regularCard_stable:
     using cr not_ordLess_iff_ordLeq using card_of_Well_order card_order_on_well_order_on by blast
 qed
 
+lemma stable_regularCard:
+assumes cr: "Card_order r" and ir: "\<not>finite (Field r)" and st: "stable r"
+shows "regularCard r"
+unfolding regularCard_def proof safe
+  fix K assume K: "K \<subseteq> Field r" and cof: "cofinal K r"
+  have "|K| \<le>o r" using K card_of_Field_ordIso card_of_mono1 cr ordLeq_ordIso_trans by blast
+  moreover
+  {assume Kr: "|K| <o r"
+   have x: "\<And>a. a \<in> Field r \<Longrightarrow> \<exists>b. b \<in> K \<and> a \<noteq> b \<and> (a, b) \<in> r" using cof unfolding cofinal_def by blast
+   then obtain f where "\<And>a. a \<in> Field r \<Longrightarrow> f a = (SOME b. b \<in> K \<and> a \<noteq> b \<and> (a, b) \<in> r)" by simp
+   then have "\<forall>a\<in>Field r. f a \<in> K \<and> a \<noteq> f a \<and> (a, f a) \<in> r" using someI_ex[OF x] by simp
+   hence "Field r \<subseteq> (\<Union>a \<in> K. underS r a)" unfolding underS_def by auto
+   hence "r \<le>o |\<Union>a \<in> K. underS r a|"
+     using cr Card_order_iff_ordLeq_card_of card_of_mono1 ordLeq_transitive by blast
+   also have "|\<Union>a \<in> K. underS r a| \<le>o |SIGMA a: K. underS r a|" by (rule card_of_UNION_Sigma)
+   also
+   {have "\<forall> a \<in> K. |underS r a| <o r" using K card_of_underS[OF cr] subsetD by auto
+    hence "|SIGMA a: K. underS r a| <o r" using st Kr unfolding stable_def by auto
+   }
+   finally have "r <o r" .
+   hence False using ordLess_irreflexive by blast
+  }
+  ultimately show "|K| =o r" using ordLeq_iff_ordLess_or_ordIso by blast
+qed
+
 lemma internalize_card_of_ordLess:
 "( |A| <o r) = (\<exists>B < Field r. |A| =o |B| \<and> |B| <o r)"
 proof
@@ -1830,6 +1915,20 @@ proof-
   ultimately show ?thesis using ordIso_symmetric ordIso_ordLess_trans by blast
 qed
 
+lemma stable_natLeq: "stable natLeq"
+proof(unfold stable_def, safe)
+  fix A :: "'a set" and F :: "'a \<Rightarrow> 'a set"
+  assume "|A| <o natLeq" and "\<forall>a\<in>A. |F a| <o natLeq"
+  hence "finite A \<and> (\<forall>a \<in> A. finite(F a))"
+  by (auto simp add: finite_iff_ordLess_natLeq)
+  hence "finite(Sigma A F)" by (simp only: finite_SigmaI[of A F])
+  thus "|Sigma A F | <o natLeq"
+  by (auto simp add: finite_iff_ordLess_natLeq)
+qed
+
+corollary regularCard_natLeq: "regularCard natLeq"
+using stable_regularCard[OF natLeq_Card_order _ stable_natLeq] Field_natLeq by simp
+
 lemma stable_UNION:
 assumes ST: "stable r" and A_LESS: "|A| <o r" and
         F_LESS: "\<And> a. a \<in> A \<Longrightarrow> |F a| <o r"
@@ -1839,5 +1938,28 @@ proof-
   using card_of_UNION_Sigma by blast
   thus ?thesis using assms stable_elim ordLeq_ordLess_trans by blast
 qed
+
+lemma stable_ordIso1:
+assumes ST: "stable r" and ISO: "r' =o r"
+shows "stable r'"
+proof(unfold stable_def, auto)
+  fix A::"'b set" and F::"'b \<Rightarrow> 'b set"
+  assume "|A| <o r'" and "\<forall>a \<in> A. |F a| <o r'"
+  hence "( |A| <o r) \<and> (\<forall>a \<in> A. |F a| <o r)"
+  using ISO ordLess_ordIso_trans by blast
+  hence "|SIGMA a : A. F a| <o r" using assms stable_elim by blast
+  thus "|SIGMA a : A. F a| <o r'"
+  using ISO ordIso_symmetric ordLess_ordIso_trans by blast
+qed
+
+lemma stable_ordIso2:
+assumes ST: "stable r" and ISO: "r =o r'"
+shows "stable r'"
+using assms stable_ordIso1 ordIso_symmetric by blast
+
+lemma stable_ordIso:
+assumes "r =o r'"
+shows "stable r = stable r'"
+using assms stable_ordIso1 stable_ordIso2 by blast
 
 end

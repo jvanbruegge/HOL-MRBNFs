@@ -103,6 +103,9 @@ lemmas natLeq_card_order = natLeq_Card_order[unfolded Field_natLeq]
 lemma natLeq_cinfinite: "cinfinite natLeq"
 unfolding cinfinite_def Field_natLeq by (rule infinite_UNIV_nat)
 
+lemma natLeq_Cinfinite: "Cinfinite natLeq"
+  using natLeq_cinfinite natLeq_Card_order by simp
+
 lemma natLeq_ordLeq_cinfinite:
   assumes inf: "Cinfinite r"
   shows "natLeq \<le>o r"
@@ -126,6 +129,15 @@ by (auto dest: card_of_ordLeq_infinite[OF card_of_mono2])
 lemma cinfinite_mono: "\<lbrakk>r1 \<le>o r2; cinfinite r1\<rbrakk> \<Longrightarrow> cinfinite r2"
 unfolding cinfinite_def by (auto dest: card_of_ordLeq_infinite[OF card_of_mono2])
 
+lemma regularCard_ordIso:
+assumes  "k =o k'" and "Cinfinite k" and "regularCard k"
+shows "regularCard k'"
+proof-
+  have "stable k" using assms cinfinite_def regularCard_stable by blast
+  hence "stable k'" using assms stable_ordIso by blast
+  thus ?thesis using assms cinfinite_def stable_regularCard
+    using Cinfinite_cong by blast
+qed
 
 subsection \<open>Binary sum\<close>
 
@@ -359,6 +371,18 @@ by (rule ordIso_transitive, rule csum_com, rule csum_absorb2', (simp only: assms
 lemma csum_absorb1: "\<lbrakk>Cinfinite r2; r1 \<le>o r2\<rbrakk> \<Longrightarrow> r2 +c r1 =o r2"
 by (rule csum_absorb1') auto
 
+lemma regularCard_csum:
+  assumes "Cinfinite r" "Cinfinite s" "regularCard r" "regularCard s"
+    shows "regularCard (r +c s)"
+proof (cases "r \<le>o s")
+  case True
+  then show ?thesis using regularCard_ordIso[of s] csum_absorb2'[THEN ordIso_symmetric] assms by auto
+next
+  case False
+  have "Well_order s" "Well_order r" using assms card_order_on_well_order_on by auto
+  then have "s \<le>o r" using not_ordLeq_iff_ordLess False ordLess_imp_ordLeq by auto
+  then show ?thesis using regularCard_ordIso[of r] csum_absorb1'[THEN ordIso_symmetric] assms by auto
+qed
 
 subsection \<open>Exponentiation\<close>
 
@@ -699,5 +723,15 @@ lemma cardSuc_UNION_Cinfinite:
   assumes "Cinfinite r" "relChain (cardSuc r) As" "B \<le> (\<Union>i \<in> Field (cardSuc r). As i)" "|B| <=o r"
   shows "\<exists>i \<in> Field (cardSuc r). B \<le> As i"
 using cardSuc_UNION assms unfolding cinfinite_def by blast
+
+lemma Cinfinite_card_suc: "\<lbrakk> Cinfinite r ; card_order r \<rbrakk> \<Longrightarrow> Cinfinite (card_suc r)"
+  using Cinfinite_cong[OF cardSuc_ordIso_card_suc Cinfinite_cardSuc] .
+
+lemma regularCard_cardSuc: "Cinfinite k \<Longrightarrow> regularCard (cardSuc k)"
+  by (rule infinite_cardSuc_regularCard) (auto simp: cinfinite_def)
+
+lemma regular_card_suc: "card_order r \<Longrightarrow> Cinfinite r \<Longrightarrow> regularCard (card_suc r)"
+  using cardSuc_ordIso_card_suc Cinfinite_cardSuc regularCard_cardSuc regularCard_ordIso
+  by blast
 
 end
