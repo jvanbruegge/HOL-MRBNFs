@@ -19,6 +19,9 @@ lemma ssubst_mem: "\<lbrakk>t = s; s \<in> X\<rbrakk> \<Longrightarrow> t \<in> 
 lemma empty_natural: "(\<lambda>_. {}) \<circ> f = image g \<circ> (\<lambda>_. {})"
   by (rule ext) simp
 
+lemma Cinfinite_gt_empty: "Cinfinite r \<Longrightarrow> |{}| <o r"
+  by (simp add: cinfinite_def finite_ordLess_infinite card_of_ordIso_finite Field_card_of card_of_well_order_on emptyI card_order_on_well_order_on)
+
 lemma Union_natural: "Union \<circ> image (image f) = image f \<circ> Union"
   by (rule ext) (auto simp only: comp_apply)
 
@@ -103,6 +106,9 @@ lemma UN_image_subset: "\<Union>(f ` g x) \<subseteq> X = (g x \<subseteq> {x. f
 lemma comp_set_bd_Union_o_collect: "|\<Union>(\<Union>((\<lambda>f. f x) ` X))| \<le>o hbd \<Longrightarrow> |(Union \<circ> collect X) x| \<le>o hbd"
   by (unfold comp_apply collect_def) simp
 
+lemma comp_set_bd_Union_o_collect_strict: "|\<Union>(\<Union>((\<lambda>f. f x) ` X))| <o hbd \<Longrightarrow> |(Union \<circ> collect X) x| <o hbd"
+  by (unfold comp_apply collect_def) simp
+
 lemma Collect_inj: "Collect P = Collect Q \<Longrightarrow> P = Q"
   by blast
 
@@ -180,7 +186,7 @@ bnf DEADID: 'a
   map: "id :: 'a \<Rightarrow> 'a"
   bd: natLeq
   rel: "(=) :: 'a \<Rightarrow> 'a \<Rightarrow> bool"
-  by (auto simp add: natLeq_card_order natLeq_cinfinite)
+  by (auto simp add: natLeq_card_order natLeq_cinfinite regularCard_natLeq)
 
 definition id_bnf :: "'a \<Rightarrow> 'a" where
   "id_bnf \<equiv> (\<lambda>x. x)"
@@ -195,7 +201,7 @@ bnf ID: 'a
   rel: "id_bnf :: ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
   pred: "id_bnf :: ('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool"
   unfolding id_bnf_def
-  apply (auto simp: Grp_def fun_eq_iff relcompp.simps natLeq_card_order natLeq_cinfinite)
+  apply (auto simp: Grp_def fun_eq_iff relcompp.simps natLeq_card_order natLeq_cinfinite regularCard_natLeq)
   apply (rule finite_ordLess_infinite[OF _ natLeq_Well_order])
   apply (auto simp add: Field_card_of Field_natLeq card_of_well_order_on)[3]
   done

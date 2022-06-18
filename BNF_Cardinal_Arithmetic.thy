@@ -234,7 +234,6 @@ by (simp only: csum_def Field_card_of card_of_refl)
 lemma Un_csum: "|A \<union> B| \<le>o |A| +c |B|"
 using ordLeq_ordIso_trans[OF card_of_Un_Plus_ordLeq Plus_csum] by blast
 
-
 subsection \<open>One\<close>
 
 definition cone where
@@ -371,6 +370,9 @@ by (rule ordIso_transitive, rule csum_com, rule csum_absorb2', (simp only: assms
 lemma csum_absorb1: "\<lbrakk>Cinfinite r2; r1 \<le>o r2\<rbrakk> \<Longrightarrow> r2 +c r1 =o r2"
 by (rule csum_absorb1') auto
 
+lemma csum_absorb2: "\<lbrakk>Cinfinite r2 ; r1 \<le>o r2\<rbrakk> \<Longrightarrow> r1 +c r2 =o r2"
+  using ordIso_transitive csum_com csum_absorb1 by blast
+
 lemma regularCard_csum:
   assumes "Cinfinite r" "Cinfinite s" "regularCard r" "regularCard s"
     shows "regularCard (r +c s)"
@@ -382,6 +384,61 @@ next
   have "Well_order s" "Well_order r" using assms card_order_on_well_order_on by auto
   then have "s \<le>o r" using not_ordLeq_iff_ordLess False ordLess_imp_ordLeq by auto
   then show ?thesis using regularCard_ordIso[of r] csum_absorb1'[THEN ordIso_symmetric] assms by auto
+qed
+
+lemma csum_mono_strict:
+  assumes Card_order: "Card_order r" "Card_order q"
+  and Cinfinite: "Cinfinite r'" "Cinfinite q'"
+  and less: "r <o r'" "q <o q'"
+shows "r +c q <o r' +c q'"
+proof -
+  have Well_order: "Well_order r" "Well_order q" "Well_order r'" "Well_order q'"
+    using card_order_on_well_order_on Card_order Cinfinite by auto
+  show ?thesis
+  proof (cases "Cinfinite r")
+    case outer: True
+    then show ?thesis
+    proof (cases "Cinfinite q")
+      case inner: True
+      then show ?thesis
+      proof (cases "r \<le>o q")
+        case True
+        then have "r +c q =o q" using csum_absorb2 inner by blast
+        then show ?thesis
+          using ordIso_ordLess_trans ordLess_ordLeq_trans less Cinfinite ordLeq_csum2 by blast
+      next
+        case False
+        then have "q \<le>o r" using not_ordLeq_iff_ordLess Well_order ordLess_imp_ordLeq by blast
+        then have "r +c q =o r" using csum_absorb1 outer by blast
+        then show ?thesis
+          using ordIso_ordLess_trans ordLess_ordLeq_trans less Cinfinite ordLeq_csum1 by blast
+      qed
+    next
+      case False
+      then have "Cfinite q" using Card_order cinfinite_def cfinite_def by blast
+      then have "q \<le>o r" using finite_ordLess_infinite cfinite_def cinfinite_def outer
+          Well_order ordLess_imp_ordLeq by blast
+      then have "r +c q =o r" by (rule csum_absorb1[OF outer])
+      then show ?thesis using ordIso_ordLess_trans ordLess_ordLeq_trans less ordLeq_csum1 Cinfinite by blast
+    qed
+  next
+    case False
+    then have outer: "Cfinite r" using Card_order cinfinite_def cfinite_def by blast
+    then show ?thesis
+    proof (cases "Cinfinite q")
+      case True
+      then have "r \<le>o q" using finite_ordLess_infinite cinfinite_def cfinite_def outer Well_order
+        ordLess_imp_ordLeq by blast
+      then have "r +c q =o q" by (rule csum_absorb2[OF True])
+      then show ?thesis using ordIso_ordLess_trans ordLess_ordLeq_trans less ordLeq_csum2 Cinfinite by blast
+    next
+      case False
+      then have "Cfinite q" using Card_order cinfinite_def cfinite_def by blast
+      then have "Cfinite (r +c q)" using Cfinite_csum outer by blast
+      moreover have "Cinfinite (r' +c q')" using Cinfinite_csum1 Cinfinite by blast
+      ultimately show ?thesis using Cfinite_ordLess_Cinfinite by blast
+    qed
+  qed
 qed
 
 subsection \<open>Exponentiation\<close>
@@ -636,6 +693,30 @@ proof -
     unfolding card_order_on_def using card_of_least ordLeq_transitive by blast+
   with assms show ?thesis unfolding cinfinite_def cprod_def
     by (blast intro: card_of_Times_ordLeq_infinite_Field)
+qed
+
+lemma cprod_infinite2': "\<lbrakk>Cnotzero r1; Cinfinite r2; r1 \<le>o r2\<rbrakk> \<Longrightarrow> r1 *c r2 =o r2"
+  unfolding ordIso_iff_ordLeq
+  by (intro conjI cprod_cinfinite_bound ordLeq_cprod2 ordLeq_refl)
+    (auto dest!: ordIso_imp_ordLeq not_ordLeq_ordLess simp: czero_def Card_order_empty)
+
+lemma regularCard_cprod:
+  assumes "Cinfinite r" "Cinfinite s" "regularCard r" "regularCard s"
+    shows "regularCard (r *c s)"
+proof (cases "r \<le>o s")
+  case True
+  show ?thesis
+    apply (rule regularCard_ordIso[of s])
+      apply (rule ordIso_symmetric[OF cprod_infinite2'])
+    using assms True Cinfinite_Cnotzero by auto
+next
+  case False
+  have "Well_order r" "Well_order s" using assms card_order_on_well_order_on by auto
+  then have 1: "s \<le>o r" using not_ordLeq_iff_ordLess ordLess_imp_ordLeq False by blast
+  show ?thesis
+    apply (rule regularCard_ordIso[of r])
+      apply (rule ordIso_symmetric[OF cprod_infinite1'])
+    using assms 1 Cinfinite_Cnotzero by auto
 qed
 
 lemma cprod_csum_cexp:
