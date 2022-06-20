@@ -1562,6 +1562,27 @@ shows "|A Un B| \<le>o r"
 using assms card_of_Plus_ordLeq_infinite_Field card_of_Un_Plus_ordLeq
 ordLeq_transitive by fast
 
+lemma card_of_Un_ordLess_infinite:
+assumes INF: "\<not>finite C" and
+        LESS1: "|A| <o |C|" and LESS2: "|B| <o |C|"
+shows "|A \<union> B| <o |C|"
+using assms card_of_Plus_ordLess_infinite card_of_Un_Plus_ordLeq
+      ordLeq_ordLess_trans by blast
+
+lemma card_of_Un_ordLess_infinite_Field:
+assumes INF: "\<not>finite (Field r)" and r: "Card_order r" and
+        LESS1: "|A| <o r" and LESS2: "|B| <o r"
+shows "|A Un B| <o r"
+proof-
+  let ?C  = "Field r"
+  have 1: "r =o |?C| \<and> |?C| =o r" using r card_of_Field_ordIso
+  ordIso_symmetric by blast
+  hence "|A| <o |?C|"  "|B| <o |?C|"
+  using LESS1 LESS2 ordLess_ordIso_trans by blast+
+  hence  "|A Un B| <o |?C|" using INF
+  card_of_Un_ordLess_infinite by blast
+  thus ?thesis using 1 ordLess_ordIso_trans by blast
+qed
 
 subsection \<open>Regular cardinals\<close>
 
@@ -1929,16 +1950,6 @@ qed
 corollary regularCard_natLeq: "regularCard natLeq"
 using stable_regularCard[OF natLeq_Card_order _ stable_natLeq] Field_natLeq by simp
 
-lemma stable_UNION:
-assumes ST: "stable r" and A_LESS: "|A| <o r" and
-        F_LESS: "\<And> a. a \<in> A \<Longrightarrow> |F a| <o r"
-shows "|\<Union>a \<in> A. F a| <o r"
-proof-
-  have "|\<Union>a \<in> A. F a| \<le>o |SIGMA a : A. F a|"
-  using card_of_UNION_Sigma by blast
-  thus ?thesis using assms stable_elim ordLeq_ordLess_trans by blast
-qed
-
 lemma stable_ordIso1:
 assumes ST: "stable r" and ISO: "r' =o r"
 shows "stable r'"
@@ -1952,14 +1963,36 @@ proof(unfold stable_def, auto)
   using ISO ordIso_symmetric ordLess_ordIso_trans by blast
 qed
 
-lemma stable_ordIso2:
-assumes ST: "stable r" and ISO: "r =o r'"
-shows "stable r'"
-using assms stable_ordIso1 ordIso_symmetric by blast
+lemma stable_UNION:
+assumes ST: "stable r" and A_LESS: "|A| <o r" and
+        F_LESS: "\<And> a. a \<in> A \<Longrightarrow> |F a| <o r"
+shows "|\<Union>a \<in> A. F a| <o r"
+proof-
+  have "|\<Union>a \<in> A. F a| \<le>o |SIGMA a : A. F a|"
+  using card_of_UNION_Sigma by blast
+  thus ?thesis using assms stable_elim ordLeq_ordLess_trans by blast
+qed
 
-lemma stable_ordIso:
-assumes "r =o r'"
-shows "stable r = stable r'"
-using assms stable_ordIso1 stable_ordIso2 by blast
+corollary card_of_UNION_ordLess_infinite:
+assumes INF: "stable |B|" and
+        LEQ_I: "|I| <o |B|" and LEQ: "\<forall>i \<in> I. |A i| <o |B|"
+shows "|\<Union>i \<in> I. A i| <o |B|"
+  using assms stable_UNION by blast
+
+corollary card_of_UNION_ordLess_infinite_Field:
+assumes ST: "stable r" and r: "Card_order r" and
+        LEQ_I: "|I| <o r" and LEQ: "\<forall>i \<in> I. |A i| <o r"
+shows "|\<Union>i \<in> I. A i| <o r"
+proof-
+  let ?B  = "Field r"
+  have 1: "r =o |?B| \<and> |?B| =o r" using r card_of_Field_ordIso
+  ordIso_symmetric by blast
+  hence "|I| <o |?B|"  "\<forall>i \<in> I. |A i| <o |?B|"
+    using LEQ_I LEQ ordLess_ordIso_trans by blast+
+  moreover have "stable |?B|" using stable_ordIso1 ST 1 by blast
+  ultimately have  "|\<Union>i \<in> I. A i| <o |?B|" using LEQ
+  card_of_UNION_ordLess_infinite by blast
+  thus ?thesis using 1 ordLess_ordIso_trans by blast
+qed
 
 end

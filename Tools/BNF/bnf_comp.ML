@@ -933,7 +933,7 @@ fun seal_bnf qualify (unfold_set : unfold_set) b force_out_of_line Ds all_Ds bnf
           etac ctxt (o_apply RS equalityD2 RS set_mp)]) (1 upto live)) 1;
     fun set_map0_tac thm ctxt =
       rtac ctxt (@{thm type_copy_set_map0} OF [type_definition, thm]) 1;
-    val set_bd_tacs = map (fn thm => fn ctxt => rtac ctxt (@{thm ordLeq_ordIso_trans} OF
+    val set_bd_tacs = map (fn thm => fn ctxt => rtac ctxt (@{thm ordLess_ordIso_trans} OF
         [thm, bd_ordIso] RS @{thm type_copy_set_bd}) 1) (set_bd_of_bnf bnf);
     fun le_rel_OO_tac ctxt =
       rtac ctxt (le_rel_OO_of_bnf bnf RS @{thm vimage2p_relcompp_mono}) 1;

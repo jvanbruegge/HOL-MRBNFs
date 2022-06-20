@@ -125,7 +125,7 @@ lemma vimage2p_relcompp_mono: "R OO S \<le> T \<Longrightarrow>
 lemma type_copy_map_cong0: "M (g x) = N (h x) \<Longrightarrow> (f \<circ> M \<circ> g) x = (f \<circ> N \<circ> h) x"
   by auto
 
-lemma type_copy_set_bd: "(\<And>y. |S y| \<le>o bd) \<Longrightarrow> |(S \<circ> Rep) x| \<le>o bd"
+lemma type_copy_set_bd: "(\<And>y. |S y| <o bd) \<Longrightarrow> |(S \<circ> Rep) x| <o bd"
   by auto
 
 lemma vimage2p_cong: "R = S \<Longrightarrow> vimage2p f g R = vimage2p f g S"

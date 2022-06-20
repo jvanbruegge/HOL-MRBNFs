@@ -134,10 +134,16 @@ assumes  "k =o k'" and "Cinfinite k" and "regularCard k"
 shows "regularCard k'"
 proof-
   have "stable k" using assms cinfinite_def regularCard_stable by blast
-  hence "stable k'" using assms stable_ordIso by blast
+  hence "stable k'" using assms stable_ordIso1 ordIso_symmetric by blast
   thus ?thesis using assms cinfinite_def stable_regularCard
     using Cinfinite_cong by blast
 qed
+
+corollary card_of_UNION_ordLess_infinite_Field_regularCard:
+assumes ST: "regularCard r" and INF: "Cinfinite r" and
+        LEQ_I: "|I| <o r" and LEQ: "\<forall>i \<in> I. |A i| <o r"
+      shows "|\<Union>i \<in> I. A i| <o r"
+  using card_of_UNION_ordLess_infinite_Field regularCard_stable assms cinfinite_def by blast
 
 subsection \<open>Binary sum\<close>
 
@@ -671,6 +677,9 @@ by (rule ordLess_imp_ordLeq[OF ctwo_ordLess_Cinfinite[OF assms]])
 
 lemma Un_Cinfinite_bound: "\<lbrakk>|A| \<le>o r; |B| \<le>o r; Cinfinite r\<rbrakk> \<Longrightarrow> |A \<union> B| \<le>o r"
 by (auto simp add: cinfinite_def card_of_Un_ordLeq_infinite_Field)
+
+lemma Un_Cinfinite_bound_strict: "\<lbrakk>|A| <o r; |B| <o r; Cinfinite r\<rbrakk> \<Longrightarrow> |A \<union> B| <o r"
+by (auto simp add: cinfinite_def card_of_Un_ordLess_infinite_Field)
 
 lemma UNION_Cinfinite_bound: "\<lbrakk>|I| \<le>o r; \<forall>i \<in> I. |A i| \<le>o r; Cinfinite r\<rbrakk> \<Longrightarrow> |\<Union>i \<in> I. A i| \<le>o r"
 by (auto simp add: card_of_UNION_ordLeq_infinite_Field cinfinite_def)

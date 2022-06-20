@@ -1562,12 +1562,13 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
               (mk_csum bnf_bd_As (mk_card_of (HOLogic.mk_UNIV bd_bnfT)));
             val in_bd_goal =
               fold_rev Logic.all As
-                (HOLogic.mk_Trueprop (mk_ordLess (mk_card_of (mk_in As bnf_sets_As CA')) bd));
+                (HOLogic.mk_Trueprop (mk_ordLeq (mk_card_of (mk_in As bnf_sets_As CA')) bd));
+            val weak_set_bds = map (fn thm => @{thm ordLess_imp_ordLeq} OF [thm]) (#set_bd axioms);
           in
             Goal.prove_sorry lthy [] [] in_bd_goal
               (fn {context = ctxt, prems = _} => mk_in_bd_tac ctxt live surj_imp_ordLeq_inst
                 (Lazy.force map_comp) (Lazy.force map_id) (#map_cong0 axioms)
-                (map Lazy.force set_map) (#set_bd axioms) (#bd_card_order axioms)
+                (map Lazy.force set_map) weak_set_bds (#bd_card_order axioms)
                 bd_Card_order bd_Cinfinite bd_Cnotzero)
             |> Thm.close_derivation \<^here>
           end;
